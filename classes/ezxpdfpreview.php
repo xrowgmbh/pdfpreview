@@ -2,11 +2,10 @@
 
 class ezxpdfpreview
 {
-    var $Operators;
-	function ezxpdfpreview()
-	{
+    function ezxpdfpreview()
+    {
         $this->Operators = array( 'pdfpreview' );
-	}
+    }
 
     /*!
      \return an array with the template operator name.
@@ -15,6 +14,7 @@ class ezxpdfpreview
     {
         return $this->Operators;
     }
+
     /*!
      \return true to tell the template engine that the parameter list exists per operator type,
              this is needed for operator classes that have multiple operators.
@@ -22,7 +22,7 @@ class ezxpdfpreview
     function namedParameterPerOperator()
     {
         return true;
-    }    
+    }
  
     /*!
      See eZTemplateOperator::namedParameterList
@@ -30,20 +30,20 @@ class ezxpdfpreview
     function namedParameterList()
     {
         return array( 'pdfpreview' => array( 
-            'width' => array( 'type' => 'integer', 'required' => true, 'default' => 99 ),
-            'height' => array( 'type' => 'integer', 'required' => true, 'default' => 0 ),
-            'page' => array( 'type' => 'integer', 'required' => false, 'default' => 1 ),
-            'original_filename' => array( 'type' => 'string', 'required' => false, 'default' => ''
-             ) 
-        ) );
-
+                                              'width' => array( 'type' => 'integer', 'required' => true ),
+                                              'height' => array( 'type' => 'integer', 'required' => true ),
+                                              'page' => array( 'type' => 'integer', 'required' => false, 'default' => 1 ),
+                                              'original_filename' => array( 'type' => 'string', 'required' => false, 'default' => '' ) 
+                                            ) 
+        );
     }
+
     /*!
      Executes the PHP function for the operator cleanup and modifies \a $operatorValue.
     */
     function modify( &$tpl, &$operatorName, &$operatorParameters, &$rootNamespace, &$currentNamespace, &$operatorValue, &$namedParameters )
     {
-    	$pdffile = eZClusterFileHandler::instance( $operatorValue );
+        $pdffile = eZClusterFileHandler::instance( $operatorValue );
         if ( !$pdffile->exists() )
         {
             eZDebug::writeError( "File not readable or doesn't exist", "pdfpreview");
@@ -71,31 +71,34 @@ class ezxpdfpreview
         $dirPath = eZSys::cacheDirectory() . "/texttoimage/" . md5( $operatorValue . $page . $width . 'x' . $height );
         if ( !file_exists( $dirPath ) )
         {
-            $ini =& eZINI::instance();
+            $ini = eZINI::instance();
             $mod = $ini->variable( 'FileSettings', 'StorageDirPermissions' );
             eZDir::mkdir( $dirPath, octdec( $mod ), true );
         }
         $target = "$dirPath/$filename";
         if ( !file_exists( $target ) )
         {
-        	$fileHandler = eZClusterFileHandler::instance( $target );
-        	if ( $fileHandler->exists() )
-        	{
-        		$fileHandler->fetch(true);
-        	}
-        	else 
-        	{
-        		$pdffile->fetch(true);
-        		$cmd =  "convert " . eZSys::escapeShellArgument( $source . "[" . $page . "]" ) . " " . "-resize " . eZSys::escapeShellArgument(  $width . "x" . $height . ">" ) . " " . eZSys::escapeShellArgument( $target );
-            	$out = shell_exec( $cmd );
-            	$fileHandler = eZClusterFileHandler::instance();
-            	$fileHandler->fileStore( $target, 'pdfpreview-image', false );
-            	eZDebug::writeDebug( $cmd, "pdfpreview" );
-            	if ( $out )
-            		eZDebug::writeDebug( $out, "pdfpreview" );
-        	}
+            $fileHandler = eZClusterFileHandler::instance( $target );
+            if ( $fileHandler->exists() )
+            {
+                $fileHandler->fetch(true);
+            }
+            else 
+            {
+                $pdffile->fetch(true);
+                $cmd =  "convert " . eZSys::escapeShellArgument( $source . "[" . $page . "]" ) . " " . "-resize " . eZSys::escapeShellArgument(  $width . "x" . $height . ">" ) . " " . eZSys::escapeShellArgument( $target );
+                $out = shell_exec( $cmd );
+                $fileHandler = eZClusterFileHandler::instance();
+                $fileHandler->fileStore( $target, 'pdfpreview-image', false );
+                eZDebug::writeDebug( $cmd, "pdfpreview" );
+                if ( $out )
+                {
+                    eZDebug::writeDebug( $out, "pdfpreview" );
+                }
+            }
         }
         $operatorValue = $target;
     }
 }
+
 ?>

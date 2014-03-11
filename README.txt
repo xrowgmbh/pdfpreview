@@ -1,7 +1,7 @@
 <code>
 /*
     PDF preview for eZ Publish
-    Copyright (C) 2009  xrow GbR, Hannover Germany, http://xrow.com
+    Copyright (C) 2014  xrow GmbH, Hannover Germany, http://xrow.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 # Provides:          pdfpreview
 # Depends:		     imagemagick + ghostscript
 # OS:			     Linux, FreeBSD, Windows
-# Version:		     > eZ 4.x		
+# Version:		     > eZ 4.x
 # Developed:	     Björn Dieding  ( bjoern [at] xrow [dot] de )
 # Short-Description: PDF Preview image generator
 # Description:       Generates an image from a single PDF page  
@@ -28,20 +28,21 @@
 
 #### Setup ####
 
-install imagemagick + ghostscript + activate extension
+install imagemagick + ghostscript + activate extension + run autoloads + clear cache
 
 #### Usage ####
 
 pathtofile|pdfpreview( width [ height, [, page [, name ] ] ] )
 
+example:
+
 <code>
 {if $node.object.data_map.file.content.mime_type|eq('application/pdf')}
-<img src={$node.object.data_map.file.content.filepath|pdfpreview( 88, 88, 1, "My PDF.pdf" )|ezroot} alt="Preview">
+    <img src={$node.object.data_map.file.content.filepath|pdfpreview( 88, 88, 1, "My PDF.pdf" )|ezroot} alt="Preview">
 {/if}
 </code>
 
 #### Troubleshooting ####
 
-Look in the debug output
-
-For further information contract service [at] xrow [dot] de
+Look into the debug output
+For further information contact service [at] xrow [dot] de
