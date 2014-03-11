@@ -33,7 +33,8 @@ class ezxpdfpreview
                                               'width' => array( 'type' => 'integer', 'required' => true ),
                                               'height' => array( 'type' => 'integer', 'required' => true ),
                                               'attribute_id' => array( 'type' => 'integer', 'required' => true),
-                                              'attribute_version' => array( 'type' => 'integer', 'required' => true)
+                                              'attribute_version' => array( 'type' => 'integer', 'required' => true),
+                                              'page' => array( 'type' => 'integer', 'required' => false, 'default' => 1)
                                             ) 
         );
     }
@@ -49,6 +50,8 @@ class ezxpdfpreview
         $height           = (int)$namedParameters['height'];
         $version          = (int)$namedParameters['attribute_version'];
         $attribute_id     = (int)$namedParameters['attribute_id'];
+        //the page of the page which will be used for the preview image
+        $page             = (int)$namedParameters['page'] - 1;
         $mod = $ini->variable( 'FileSettings', 'StorageDirPermissions' );
 
         //check if the pdf which is required for the preview is existing
@@ -74,12 +77,12 @@ class ezxpdfpreview
         }
 
         //path to the pdf preview image and initialize it
-        $cacheImageFilePath = $preview_cache_attribute_folder . "/" . $version . "_" . $width . "x" . $height . ".jpg";
+        $cacheImageFilePath = $preview_cache_attribute_folder . "/" . $version . "_" . $page . "_" . $width . "x" . $height . ".jpg";
         $cacheFile = eZClusterFileHandler::instance( $cacheImageFilePath );
 
         //return the path or create the missing preview image
         $operatorValue = $cacheFile->processCache( array( 'ezxpdfpreview', 'previewRetrieve' ),
-                                                   array( 'ezxpdfpreview', 'previewGenerate' ), NULL, NULL, array( "preview_image_path" => $cacheImageFilePath, "pdf" => $pdffile, "pdf_path" => $pdf_file_path, "width" => $width, "height" => $height ));
+                                                   array( 'ezxpdfpreview', 'previewGenerate' ), NULL, NULL, array( "preview_image_path" => $cacheImageFilePath, "pdf" => $pdffile, "pdf_path" => $pdf_file_path, "width" => $width, "height" => $height, "page" => $page ));
     }
 
     function previewRetrieve( $complete_file_path, $mtime, $variables )
@@ -92,7 +95,7 @@ class ezxpdfpreview
     {
         $preview_image_path = $variables["preview_image_path"];
         $variables["pdf"]->fetch(true);
-        $cmd = "convert " . eZSys::escapeShellArgument( $variables["pdf_path"] ) . " -resize " . eZSys::escapeShellArgument(  $variables["width"] . "x" . $variables["height"] . " > " ) . eZSys::escapeShellArgument( $preview_image_path );
+        $cmd = "convert " . eZSys::escapeShellArgument( $variables["pdf_path"] . "[" . $variables["page"] . "]" ) . " -resize " . eZSys::escapeShellArgument(  $variables["width"] . "x" . $variables["height"] . " > " ) . eZSys::escapeShellArgument( $preview_image_path );
         $out = shell_exec( $cmd );
         $fileHandler = eZClusterFileHandler::instance();
         $fileHandler->fileStore( $preview_image_path, 'pdfpreview', false );
