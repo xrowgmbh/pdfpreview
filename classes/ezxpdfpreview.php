@@ -32,8 +32,8 @@ class ezxpdfpreview
         return array( 'pdfpreview' => array( 
                                               'width' => array( 'type' => 'integer', 'required' => true ),
                                               'height' => array( 'type' => 'integer', 'required' => true ),
-                                              'page' => array( 'type' => 'integer', 'required' => false, 'default' => 1 ),
-                                              'original_filename' => array( 'type' => 'string', 'required' => false, 'default' => '' ) 
+                                              'attribute_id' => array( 'type' => 'integer', 'required' => true),
+                                              'attribute_version' => array( 'type' => 'integer', 'required' => true)
                                             ) 
         );
     }
@@ -43,61 +43,64 @@ class ezxpdfpreview
     */
     function modify( &$tpl, &$operatorName, &$operatorParameters, &$rootNamespace, &$currentNamespace, &$operatorValue, &$namedParameters )
     {
-        $pdffile = eZClusterFileHandler::instance( $operatorValue );
+        $ini              = eZINI::instance();
+        $pdf_file_path    = $operatorValue;
+        $width            = (int)$namedParameters['width'];
+        $height           = (int)$namedParameters['height'];
+        $version          = (int)$namedParameters['attribute_version'];
+        $attribute_id     = (int)$namedParameters['attribute_id'];
+        $mod = $ini->variable( 'FileSettings', 'StorageDirPermissions' );
+
+        //check if the pdf which is required for the preview is existing
+        $pdffile = eZClusterFileHandler::instance( $pdf_file_path );
         if ( !$pdffile->exists() )
         {
-            eZDebug::writeError( "File not readable or doesn't exist", "pdfpreview");
-            return;
+            eZDebug::writeError( "File not readable or doesn't exist. Can not generate a preview of the attribute.", "pdfpreview");
+            return false;
         }
-        
-        if ( $namedParameters['original_filename'] )
-        {
-            $mime = eZMimeType::findByURL( $namedParameters['original_filename'] );
-            $filename = $mime['basename'].".png";
-        }
-        else
-        {
-            $mime = eZMimeType::findByURL( $operatorValue );
-            $filename = $mime['basename'].".png";
-        }
-        $width = (int) $namedParameters['width'];
-        if ( isset( $namedParameters['height'] ) and $namedParameters['height'] > 0 )
-            $height = (int) $namedParameters['height'];
-        else
-            $height = (int) $namedParameters['width'];
-        $page = (int) $namedParameters['page'] - 1;
-        $source = $operatorValue;
 
-        $dirPath = eZSys::cacheDirectory() . "/texttoimage/" . md5( $operatorValue . $page . $width . 'x' . $height );
-        if ( !file_exists( $dirPath ) )
+        //check if the pdfpreview folder exists
+        $preview_cache_folder = eZSys::cacheDirectory() . "/pdfpreview";
+        if ( !file_exists( $preview_cache_folder ) )
         {
-            $ini = eZINI::instance();
-            $mod = $ini->variable( 'FileSettings', 'StorageDirPermissions' );
-            eZDir::mkdir( $dirPath, octdec( $mod ), true );
+            eZDir::mkdir( $preview_cache_folder, octdec( $mod ), true );
         }
-        $target = "$dirPath/$filename";
-        if ( !file_exists( $target ) )
+
+        //check if the subfolder for the attribute already exists
+        $preview_cache_attribute_folder = $preview_cache_folder . "/" . $attribute_id;
+        if ( !file_exists( $preview_cache_attribute_folder ) )
         {
-            $fileHandler = eZClusterFileHandler::instance( $target );
-            if ( $fileHandler->exists() )
-            {
-                $fileHandler->fetch(true);
-            }
-            else 
-            {
-                $pdffile->fetch(true);
-                $cmd =  "convert " . eZSys::escapeShellArgument( $source . "[" . $page . "]" ) . " " . "-resize " . eZSys::escapeShellArgument(  $width . "x" . $height . ">" ) . " " . eZSys::escapeShellArgument( $target );
-                $out = shell_exec( $cmd );
-                $fileHandler = eZClusterFileHandler::instance();
-                $fileHandler->fileStore( $target, 'pdfpreview-image', false );
-                eZDebug::writeDebug( $cmd, "pdfpreview" );
-                if ( $out )
-                {
-                    eZDebug::writeDebug( $out, "pdfpreview" );
-                }
-            }
+            eZDir::mkdir( $preview_cache_attribute_folder, octdec( $mod ), true );
         }
-        $operatorValue = $target;
+
+        //path to the pdf preview image and initialize it
+        $cacheImageFilePath = $preview_cache_attribute_folder . "/" . $version . "_" . $width . "x" . $height . ".jpg";
+        $cacheFile = eZClusterFileHandler::instance( $cacheImageFilePath );
+
+        //return the path or create the missing preview image
+        $operatorValue = $cacheFile->processCache( array( 'ezxpdfpreview', 'previewRetrieve' ),
+                                                   array( 'ezxpdfpreview', 'previewGenerate' ), NULL, NULL, array( "preview_image_path" => $cacheImageFilePath, "pdf" => $pdffile, "pdf_path" => $pdf_file_path, "width" => $width, "height" => $height ));
+    }
+
+    function previewRetrieve( $complete_file_path, $mtime, $variables )
+    {
+        //only throw back the path of the existing "cached" preview image
+        return $variables["preview_image_path"];
+    }
+
+    function previewGenerate( $complete_file_path, $variables )
+    {
+        $preview_image_path = $variables["preview_image_path"];
+        $variables["pdf"]->fetch(true);
+        $cmd = "convert " . eZSys::escapeShellArgument( $pdf_path ) . " -resize " . eZSys::escapeShellArgument(  $variables["width"] . "x" . $variables["height"] . " > " ) . eZSys::escapeShellArgument( $preview_image_path );
+        $out = shell_exec( $cmd );
+        $fileHandler = eZClusterFileHandler::instance();
+        $fileHandler->fileStore( $preview_image_path, 'pdfpreview', false );
+        eZDebug::writeDebug( $cmd, "pdfpreview" );
+        if ( $out )
+        {
+            eZDebug::writeDebug( $out, "pdfpreview" );
+        }
     }
 }
 

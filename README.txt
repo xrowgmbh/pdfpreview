@@ -32,13 +32,13 @@ install imagemagick + ghostscript + activate extension + run autoloads + clear c
 
 #### Usage ####
 
-pathtofile|pdfpreview( width [ height, [, page [, name ] ] ] )
+pathtofile|pdfpreview( width [ height, [, attribute_id [, attribute_version ] ] ] )
 
 example:
 
 <code>
 {if $node.object.data_map.file.content.mime_type|eq('application/pdf')}
-    <img src={$node.object.data_map.file.content.filepath|pdfpreview( 88, 88, 1, "My PDF.pdf" )|ezroot} alt="Preview">
+    <img src={$node.object.data_map.file.content.filepath|pdfpreview( 88, 88, 13234, 5 )|ezroot()} alt="Preview">
 {/if}
 </code>
 
