@@ -95,7 +95,7 @@ class ezxpdfpreview
     {
         $preview_image_path = $variables["preview_image_path"];
         $variables["pdf"]->fetch(true);
-        $cmd = "convert " . eZSys::escapeShellArgument( $variables["pdf_path"] . "[" . $variables["page"] . "]" ) . " -resize " . eZSys::escapeShellArgument(  $variables["width"] . "x" . $variables["height"] . " > " ) . eZSys::escapeShellArgument( $preview_image_path );
+        $cmd = "convert " . eZSys::escapeShellArgument( $variables["pdf_path"] . "[" . $variables["page"] . "]" ) . " " . "-resize " . eZSys::escapeShellArgument(  $variables["width"] . "x" . $variables["height"] . ">" ) . " " . eZSys::escapeShellArgument( $preview_image_path );
         $out = shell_exec( $cmd );
         $fileHandler = eZClusterFileHandler::instance();
         $fileHandler->fileStore( $preview_image_path, 'pdfpreview', false );
