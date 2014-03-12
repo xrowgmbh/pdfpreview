@@ -79,28 +79,29 @@ class ezxpdfpreview
         //path to the pdf preview image and initialize it
         $cacheImageFilePath = $preview_cache_attribute_folder . "/" . $version . "_" . $page . "_" . $width . "x" . $height . ".jpg";
         $cacheFile = eZClusterFileHandler::instance( $cacheImageFilePath );
-
+        $args = compact( array( "cacheImageFilePath", "pdffile", "pdf_file_path", "width", "height", "page" ) );
         //create an image or do nothing
         $run_it = $cacheFile->processCache( array( 'ezxpdfpreview', 'previewRetrieve' ),
-                                            array( 'ezxpdfpreview', 'previewGenerate' ), NULL, NULL, array( "preview_image_path" => $cacheImageFilePath, "pdf" => $pdffile, "pdf_path" => $pdf_file_path, "width" => $width, "height" => $height, "page" => $page ));
+                                            array( 'ezxpdfpreview', 'previewGenerate' ), NULL, NULL, $args );
 
         //return the path
         $operatorValue = $cacheImageFilePath;
     }
 
-    function previewRetrieve( $complete_file_path, $mtime, $variables )
+    function previewRetrieve( $file, $mtime, $args )
     {
         //do nothing
     }
 
-    function previewGenerate( $complete_file_path, $variables )
+    function previewGenerate( $file, $args )
     {
-        $preview_image_path = $variables["preview_image_path"];
-        $variables["pdf"]->fetch(true);
-        $cmd = "convert " . eZSys::escapeShellArgument( $variables["pdf_path"] . "[" . $variables["page"] . "]" ) . " " . "-resize " . eZSys::escapeShellArgument(  $variables["width"] . "x" . $variables["height"] . ">" ) . " " . eZSys::escapeShellArgument( $preview_image_path );
+        extract( $args );
+        
+        $pdffile->fetch(true);
+        $cmd = "convert " . eZSys::escapeShellArgument( $pdf_file_path . "[" . $page . "]" ) . " " . "-resize " . eZSys::escapeShellArgument(  $width . "x" . $height . ">" ) . " " . eZSys::escapeShellArgument( $cacheImageFilePath );
         $out = shell_exec( $cmd );
         $fileHandler = eZClusterFileHandler::instance();
-        $fileHandler->fileStore( $preview_image_path, 'pdfpreview', false );
+        $fileHandler->fileStore( $cacheImageFilePath, 'pdfpreview', false );
         eZDebug::writeDebug( $cmd, "pdfpreview" );
         if ( $out )
         {
