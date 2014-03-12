@@ -80,15 +80,17 @@ class ezxpdfpreview
         $cacheImageFilePath = $preview_cache_attribute_folder . "/" . $version . "_" . $page . "_" . $width . "x" . $height . ".jpg";
         $cacheFile = eZClusterFileHandler::instance( $cacheImageFilePath );
 
-        //return the path or create the missing preview image
-        $operatorValue = $cacheFile->processCache( array( 'ezxpdfpreview', 'previewRetrieve' ),
-                                                   array( 'ezxpdfpreview', 'previewGenerate' ), NULL, NULL, array( "preview_image_path" => $cacheImageFilePath, "pdf" => $pdffile, "pdf_path" => $pdf_file_path, "width" => $width, "height" => $height, "page" => $page ));
+        //create an image or do nothing
+        $run_it = $cacheFile->processCache( array( 'ezxpdfpreview', 'previewRetrieve' ),
+                                            array( 'ezxpdfpreview', 'previewGenerate' ), NULL, NULL, array( "preview_image_path" => $cacheImageFilePath, "pdf" => $pdffile, "pdf_path" => $pdf_file_path, "width" => $width, "height" => $height, "page" => $page ));
+
+        //return the path
+        $operatorValue = $cacheImageFilePath;
     }
 
     function previewRetrieve( $complete_file_path, $mtime, $variables )
     {
-        //only throw back the path of the existing "cached" preview image
-        return $variables["preview_image_path"];
+        //do nothing
     }
 
     function previewGenerate( $complete_file_path, $variables )
