@@ -30,6 +30,10 @@
 
 install imagemagick + ghostscript + activate extension + run autoloads + clear cache
 
+allow to access your "cache/pdfpreview" folder in your htaccess example:
+
+RewriteRule ^var/([^/]+/)?(storage/images(-versioned)?|original/video|original/text|cache/public|cache/pdfpreview|storage/cam-cache)/.* index_cluster.php
+
 #### Usage ####
 
 pathtofile|pdfpreview( width [ height, [, attribute_id [, attribute_version ] ] ] )
@@ -41,6 +45,10 @@ example:
     <img src={$node.object.data_map.file.content.filepath|pdfpreview( 88, 88, 13234, 5 )|ezroot()} alt="Preview">
 {/if}
 </code>
+
+### Deleting the Preview Images ####
+
+php bin\php\ezcache.php --clear-id=pdfpreview --purge
 
 #### Troubleshooting ####
 
