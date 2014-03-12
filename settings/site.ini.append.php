@@ -21,7 +21,7 @@ isClustered=true
 enabled=true
 # [optional] Path where cache is stored, either directory or file if class/purgeClass
 # variables are unset, relative to current cache directory is assumed
-#path=custom_cache.php
+path=pdfpreview
 # [optional] custom cache clear function "<class>::clearCache()" to be called
 #class=eZSomeClassName
 # [optional] custom cache purge function "<class>::purgeCache()" to be called
