@@ -78,7 +78,8 @@ class ezxpdfpreview
 
         //path to the pdf preview image and initialize it
         $cacheImageFilePath = $preview_cache_attribute_folder . "/" . $version . "_" . $page . "_" . $width . "x" . $height . ".jpg";
-        $cacheFile = eZClusterFileHandler::instance( $cacheImageFilePath );
+        //use just any path to create the cache file
+        $cacheFile = eZClusterFileHandler::instance( $preview_cache_attribute_folder . "/" . $version . "_" . $page );
         $args = compact( array( "cacheImageFilePath", "pdffile", "pdf_file_path", "width", "height", "page" ) );
         //create an image or do nothing
         $run_it = $cacheFile->processCache( array( 'ezxpdfpreview', 'previewRetrieve' ),
@@ -107,6 +108,11 @@ class ezxpdfpreview
         {
             eZDebug::writeDebug( $out, "pdfpreview" );
         }
+        
+        //return values for the storecache function
+        return array( 'content'  => $cacheImageFilePath,
+                      'scope'    => 'pdfpreview',
+                      'store'    => true );
     }
 }
 
