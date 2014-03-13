@@ -34,15 +34,17 @@ allow to access your "cache/pdfpreview" folder in your htaccess example:
 
 RewriteRule ^var/([^/]+/)?(storage/images(-versioned)?|original/video|original/text|cache/public|cache/pdfpreview|storage/cam-cache)/.* index_cluster.php
 
+Add a attribute with the identifier "preview_page_number" of the datatype "integer" to the file class
+
 #### Usage ####
 
-pathtofile|pdfpreview( width [ height, [, attribute_id [, attribute_version ] ] ] )
+pathtofile|pdfpreview( width, height, attribute_id, attribute_version, pdfpage )
 
 example:
 
 <code>
 {if $node.object.data_map.file.content.mime_type|eq('application/pdf')}
-    <img src={$node.object.data_map.file.content.filepath|pdfpreview( 88, 88, 13234, 5 )|ezroot()} alt="Preview">
+    <img src={$node.object.data_map.file.content.filepath|pdfpreview( 88, 88, 13234, 5, 1 )|ezroot()} alt="Preview">
 {/if}
 </code>
 
