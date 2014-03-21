@@ -51,7 +51,15 @@ class ezxpdfpreview
         $version          = (int)$namedParameters['attribute_version'];
         $attribute_id     = (int)$namedParameters['attribute_id'];
         //the page of the page which will be used for the preview image
-        $page             = (int)$namedParameters['page'] - 1;
+        if ( (int)$namedParameters['page'] >= 1 )
+        {
+            $page = (int)$namedParameters['page'] - 1;
+        }
+        else
+        {
+            //dont generate anything
+            return " ";
+        }
         $mod = $ini->variable( 'FileSettings', 'StorageDirPermissions' );
 
         //check if the pdf which is required for the preview is existing
