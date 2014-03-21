@@ -58,7 +58,8 @@ class ezxpdfpreview
         else
         {
             //dont generate anything
-            return " ";
+            $operatorValue = "";
+            return true;
         }
         $mod = $ini->variable( 'FileSettings', 'StorageDirPermissions' );
 
