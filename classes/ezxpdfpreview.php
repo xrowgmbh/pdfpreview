@@ -91,8 +91,7 @@ class ezxpdfpreview
         $cacheFile = eZClusterFileHandler::instance( $preview_cache_attribute_folder . "/" . $version . "_" . $page );
         $args = compact( array( "cacheImageFilePath", "pdffile", "pdf_file_path", "width", "height", "page" ) );
         //create an image or do nothing
-        $run_it = $cacheFile->processCache( array( 'ezxpdfpreview', 'previewRetrieve' ),
-                                            array( 'ezxpdfpreview', 'previewGenerate' ), NULL, NULL, $args );
+        $run_it = $cacheFile->processCache( NULL, array( 'ezxpdfpreview', 'previewGenerate' ), NULL, NULL, $args );
 
         //return the path
         $operatorValue = $cacheImageFilePath;
