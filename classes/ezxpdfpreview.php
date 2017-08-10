@@ -45,56 +45,16 @@ class ezxpdfpreview
     function modify( &$tpl, &$operatorName, &$operatorParameters, &$rootNamespace, &$currentNamespace, &$operatorValue, &$namedParameters )
     {
         $ini              = eZINI::instance();
-        $pdf_file_path    = $operatorValue;
+        $contentId    = $operatorValue;
         $width            = (int)$namedParameters['width'];
         $height           = (int)$namedParameters['height'];
         $version          = (int)$namedParameters['attribute_version'];
         $attribute_id     = (int)$namedParameters['attribute_id'];
-        //the page of the page which will be used for the preview image
-        if ( (int)$namedParameters['page'] >= 1 )
-        {
-            $page = (int)$namedParameters['page'] - 1;
-        }
-        else
-        {
-            //dont generate anything
-            $operatorValue = "";
-            return true;
-        }
-        $mod = $ini->variable( 'FileSettings', 'StorageDirPermissions' );
 
-        //check if the pdf which is required for the preview is existing
-        $pdffile = eZClusterFileHandler::instance( $pdf_file_path );
-        if ( !$pdffile->exists() )
-        {
-            eZDebug::writeError( "File not readable or doesn't exist. Can not generate a preview of the attribute.", "pdfpreview");
-            return false;
-        }
+        $container = ezpKernel::instance()->getServiceContainer();
+        $pdfPreview = $container->get( 'xrow_pdf_preview' );
 
-        //check if the pdfpreview folder exists
-        $preview_cache_folder = eZSys::cacheDirectory() . "/pdfpreview";
-        if ( !file_exists( $preview_cache_folder ) )
-        {
-            eZDir::mkdir( $preview_cache_folder, octdec( $mod ), true );
-        }
-
-        //check if the subfolder for the attribute already exists
-        $preview_cache_attribute_folder = $preview_cache_folder . "/" . $attribute_id;
-        if ( !file_exists( $preview_cache_attribute_folder ) )
-        {
-            eZDir::mkdir( $preview_cache_attribute_folder, octdec( $mod ), true );
-        }
-
-        //path to the pdf preview image and initialize it
-        $cacheImageFilePath = $preview_cache_attribute_folder . "/" . $version . "_" . $page . "_" . $width . "x" . $height . ".jpg";
-        //use just any path to create the cache file
-        $cacheFile = eZClusterFileHandler::instance( $preview_cache_attribute_folder . "/" . $version . "_" . $page );
-        $args = compact( array( "cacheImageFilePath", "pdffile", "pdf_file_path", "width", "height", "page" ) );
-        //create an image or do nothing
-        $run_it = $cacheFile->processCache( NULL, array( 'ezxpdfpreview', 'previewGenerate' ), NULL, NULL, $args );
-
-        //return the path
-        $operatorValue = $cacheImageFilePath;
+        $operatorValue = $pdfPreview->preview($contentId, $width, $height);
     }
 
     function previewRetrieve( $file, $mtime, $args )
