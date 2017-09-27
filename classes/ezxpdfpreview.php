@@ -48,8 +48,6 @@ class ezxpdfpreview
         $contentId    = $operatorValue;
         $width            = (int)$namedParameters['width'];
         $height           = (int)$namedParameters['height'];
-        $version          = (int)$namedParameters['attribute_version'];
-        $attribute_id     = (int)$namedParameters['attribute_id'];
 
         $container = ezpKernel::instance()->getServiceContainer();
         $pdfPreview = $container->get( 'xrow_pdf_preview' );
